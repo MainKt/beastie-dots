@@ -1,0 +1,10 @@
+cursor_size: 12
+copy_and_exit: y
+hint: f
+hint2: F
+scroll_up: u
+scroll_down: d
+scroll_left: H
+scroll_right: L
+exit: q
+normal_system_cursor: 1
