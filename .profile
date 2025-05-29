@@ -7,6 +7,7 @@ export PATH="$HOME/.local/bin:$PATH"
 export EDITOR=nvim
 export PAGER=less
 export MANPAGER="nvim +Man!"
+export GTK_THEME="Adwaita:dark"
 
 # set ENV to a file invoked each time sh is started for interactive use.
 ENV=$HOME/.shrc; export ENV
