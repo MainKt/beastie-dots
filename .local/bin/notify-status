@@ -1,0 +1,7 @@
+#!/usr/local/bin/bash
+
+date=$(date +"%a %b %d, %H:%M")
+battery="Battery: $(sysctl hw.acpi.battery.life | cut -d' ' -f2)%"
+volume="Volume: $(mixer vol.volume | cut -d'=' -f2)"
+notification_content=$(printf "%s\n\n%s\n\n%s" "$date" "$battery" "$volume" | cowsay)
+notify-send --expire-time=3500 "$notification_content"
