@@ -4,6 +4,7 @@ require "paq" {
   "stevearc/oil.nvim",
   "neovim/nvim-lspconfig",
   "EdenEast/nightfox.nvim",
+  "tpope/vim-fugitive",
   "tpope/vim-surround",
   "tpope/vim-repeat",
   "mbbill/undotree",
@@ -61,9 +62,11 @@ vim.keymap.set("n", "<leader>=", vim.lsp.buf.format)
 
 vim.keymap.set("t", "<Esc><Esc>", "<C-\\><C-n>")
 
+vim.keymap.set("n", "<leader>g", "<cmd>Git<CR>")
+
 vim.keymap.set("n", "<leader><leader>", "<cmd>Telescope find_files<CR>")
 vim.keymap.set({"n", "v"}, "<leader>*", "<cmd>Telescope grep_string<CR>")
-vim.keymap.set("n", "<leader>/", "<cmd>Telescope grep_string<CR>")
+vim.keymap.set("n", "<leader>/", "<cmd>Telescope live_grep<CR>")
 vim.keymap.set("n", "<leader>j", "<cmd>Telescope jumplist<CR>")
 vim.keymap.set("n", "<leader>h", "<cmd>Telescope help_tags<CR>")
 vim.keymap.set("n", "<leader>", "<cmd>Telescope resume<CR>")
