@@ -1,33 +1,47 @@
-require "paq" {
-  "savq/paq-nvim",
-  "tpope/vim-sleuth",
-  "stevearc/oil.nvim",
-  "neovim/nvim-lspconfig",
-  "EdenEast/nightfox.nvim",
-  "tpope/vim-fugitive",
-  "tpope/vim-surround",
-  "tpope/vim-repeat",
-  "mbbill/undotree",
-  "lewis6991/gitsigns.nvim",
-  "nvim-treesitter/nvim-treesitter-textobjects",
-  "nvim-telescope/telescope.nvim",
-  "nvim-telescope/telescope-fzf-native.nvim",
-  "nvim-lua/plenary.nvim",
-  "rmagatti/auto-session",
-  "echasnovski/mini.icons",
-  "echasnovski/mini.ai",
-  "echasnovski/mini.statusline",
-  { "lervag/vimtex", opt = true },
-  { "nvim-treesitter/nvim-treesitter", build = ":TSUpdate" },
+vim.pack.add {
+  "https://github.com/saghen/blink.cmp",
+  "https://github.com/ibhagwan/fzf-lua",
+  "https://github.com/rafamadriz/friendly-snippets",
+  "https://github.com/stevearc/oil.nvim",
+  "https://github.com/EdenEast/nightfox.nvim",
+  "https://github.com/NeogitOrg/neogit",
+  "https://github.com/sindrets/diffview.nvim",
+  "https://github.com/tpope/vim-surround",
+  "https://github.com/echasnovski/mini.diff",
+  "https://github.com/tpope/vim-sleuth",
+  "https://github.com/tpope/vim-unimpaired",
+  "https://github.com/tpope/vim-repeat",
+  "https://github.com/mbbill/undotree",
+  "https://github.com/nvim-lua/plenary.nvim",
+  "https://github.com/rmagatti/auto-session",
+  "https://github.com/echasnovski/mini.icons",
+  "https://github.com/echasnovski/mini.statusline",
+  "https://github.com/echasnovski/mini.indentscope",
+  "https://github.com/neovim/nvim-lspconfig",
+  "https://github.com/nvim-treesitter/nvim-treesitter-textobjects",
+  "https://github.com/folke/lazydev.nvim",
+  {
+    src = "https://github.com/nvim-treesitter/nvim-treesitter",
+    build = ":TSUpdate"
+  },
+  { src = "https://github.com/lervag/vimtex", opt = true },
+}
+
+require("lazydev").setup {
+  library = {
+    { path = "${3rd}/luv/library", words = { "vim%.uv" } },
+  },
 }
 
 --
 -- opts
 --
 vim.g.mapleader = " "
+vim.o.grepprg = "rg --vimgrep"
 vim.g.maplocalleader = " "
 vim.opt.shiftwidth = 2
 vim.opt.tabstop = 2
+vim.opt.list = true
 vim.opt.number = true
 vim.opt.relativenumber = true
 vim.opt.wrap = false
@@ -40,45 +54,81 @@ vim.opt.updatetime = 250
 vim.opt.signcolumn = "yes"
 vim.opt.textwidth = 80
 vim.opt.colorcolumn = "80"
+vim.opt.clipboard = "unnamedplus"
 
 vim.schedule(function()
-  vim.opt.clipboard = "unnamedplus"
+  vim.cmd.packadd "cfilter"
   vim.cmd.colorscheme "carbonfox"
 end)
 
 vim.api.nvim_create_user_command("Bd", "bp | bd#", {})
+vim.api.nvim_create_user_command("Scratch", function(opts)
+  vim.cmd(
+    "new |" ..
+    "setlocal buftype=nofile bufhidden=hide noswapfile |" ..
+    "read !" ..
+    opts.args
+  )
+end, { nargs = "*" })
+
+vim.api.nvim_create_user_command("LocalJumps", function()
+  vim.fn.setloclist(0, vim.tbl_map(function(j)
+    return j.bufnr == vim.api.nvim_get_current_buf() and {
+      bufnr = j.bufnr,
+      lnum = j.lnum,
+      col = j.col,
+      text = vim.fn.getbufline(j.bufnr, j.lnum)[1] or ""
+    } or nil
+  end, vim.fn.getjumplist()[1]), 'r')
+end, {})
+
+vim.api.nvim_create_user_command("Capture", function(opts)
+  vim.cmd(
+    "redir => output |" ..
+    "silent " .. opts.args .. "|" ..
+    "redir END |" ..
+    "new |" ..
+    "setlocal buftype=nofile bufhidden=hide noswapfile |" ..
+    "put =output"
+  )
+end, { nargs = "+" })
 
 --
 -- keybindings
 --
-vim.keymap.set("i", "<C-k>", "<nop>") 
+vim.keymap.set("i", "<C-k>", "<nop>")
 vim.keymap.set("n", "<Esc>", "<cmd>nohlsearch<CR>")
 vim.keymap.set("n", "<leader>%", "<cmd>source %<CR>")
 vim.keymap.set("n", "<leader>x", ":.lua<CR>")
 vim.keymap.set("v", "<leader>x", ":lua<CR>")
 vim.keymap.set("n", "<leader>w", "<C-W>")
+vim.keymap.set("n", "co", function()
+  vim.cmd(vim.fn.getqflist({ winid = 0 }).winid > 0 and "cclose" or "copen")
+end)
 vim.keymap.set("n", "gre", vim.diagnostic.open_float)
 vim.keymap.set("n", "<leader>=", vim.lsp.buf.format)
+vim.keymap.set("n", "<leader>cq", vim.diagnostic.setqflist)
+vim.keymap.set("n", "<leader>cl", vim.diagnostic.setloclist)
+vim.keymap.set("n", "gd", vim.lsp.buf.definition)
 
 vim.keymap.set("t", "<Esc><Esc>", "<C-\\><C-n>")
 
-vim.keymap.set("n", "<leader>g", "<cmd>Git<CR>")
+vim.keymap.set("n", "<leader>g", "<cmd>Neogit<CR>")
 
-vim.keymap.set("n", "<leader><leader>", "<cmd>Telescope find_files<CR>")
-vim.keymap.set({"n", "v"}, "<leader>*", "<cmd>Telescope grep_string<CR>")
-vim.keymap.set("n", "<leader>/", "<cmd>Telescope live_grep<CR>")
-vim.keymap.set("n", "<leader>j", "<cmd>Telescope jumplist<CR>")
-vim.keymap.set("n", "<leader>h", "<cmd>Telescope help_tags<CR>")
-vim.keymap.set("n", "<leader>", "<cmd>Telescope resume<CR>")
-vim.keymap.set("n", "<leader>?", "<cmd>Telescope oldfiles<CR>")
-vim.keymap.set("n", "<leader>,", "<cmd>Telescope buffers<CR>")
-vim.keymap.set("n", "<leader>e", "<cmd>Telescope diagnostics<CR>")
-vim.keymap.set("n", "grs", "<cmd>Telescope lsp_workspace_symbols<CR>")
+vim.keymap.set("n", "<leader><leader>", "<cmd>FzfLua files<CR>")
+vim.keymap.set({ "n", "v" }, "<leader>*", "<cmd>FzfLua  grep_cword<CR>")
+vim.keymap.set("n", "<leader>/", "<cmd>FzfLua live_grep<CR>")
+vim.keymap.set("n", "<leader>j", "<cmd>LocalJumps<CR>")
+vim.keymap.set("n", "<leader>'", "<cmd>FzfLua resume<CR>")
+vim.keymap.set("n", "<leader>?", "<cmd>FzfLua oldfiles<CR>")
+vim.keymap.set("n", "<leader>,", "<cmd>FzfLua buffers<CR>")
+vim.keymap.set("n", "<leader>e", "<cmd>FzfLua  diagnostics_workspace<CR>")
+vim.keymap.set("n", "grs", "<cmd>FzfLua lsp_workspace_symbols<CR>")
 
 vim.keymap.set("n", "<leader>u", "<cmd>UndotreeToggle<CR>")
 vim.keymap.set("n", "-", ":Oil<Cr>")
 
-vim.keymap.set ("n", "<leader><Tab>", function()
+vim.keymap.set("n", "<leader><Tab>", function()
   vim.cmd("SessionSave")
   vim.cmd("SessionSearch")
 end)
@@ -101,44 +151,26 @@ vim.api.nvim_create_autocmd("TermOpen", {
   end,
 })
 
+vim.api.nvim_create_autocmd("QuickFixCmdPost", {
+  callback = function(args)
+    _ = args.match:match("^l") and vim.cmd.lopen() or vim.cmd.copen()
+  end,
+})
+
 --
 -- plugins
 --
+require('fzf-lua').setup {'telescope'}
+
 local lspconfig = require "lspconfig"
-local lsps = { "clangd", "lua_ls" }
+local lsps = { "clangd", "lua_ls", "zls", "rust_analyzer" }
 for _, lsp in pairs(lsps) do
   lspconfig[lsp].setup {}
 end
 
-require("gitsigns").setup {
-  signs = {
-    add = { text = "+" },
-    change = { text = "~" },
-    delete = { text = "_" },
-    topdelete = { text = "‾" },
-    changedelete = { text = "~" },
-  },
-}
-
 require("oil").setup {
   default_file_explorer = true,
   skip_confirm_for_simple_edits = true,
-}
-
-require("telescope").setup {
-  pickers = {
-    find_files = {
-      find_command = { "fd", "--type", "f", "--type", "d" },
-    },
-  },
-  extensions = { 
-    fzf = {
-      fuzzy = true,                    
-      override_generic_sorter = true,  
-      override_file_sorter = true,    
-      case_mode = "smart_case",
-    },
-  },
 }
 
 require("nvim-treesitter.configs").setup {
@@ -155,13 +187,33 @@ require("nvim-treesitter.configs").setup {
   },
 }
 
-
 require("auto-session").setup {
   auto_create = true,
   auto_save = true,
-  suppressed_dirs = { "~/", "~/projects", "~/downloads", "/" },
+  suppressed_dirs = { "~/", "~/downloads", "/" },
 }
 
-require("mini.ai").setup {}
 require("mini.icons").setup {}
 require("mini.statusline").setup {}
+require("mini.diff").setup {}
+require("mini.indentscope").setup {
+  draw = { predicate = function(_) return false end },
+}
+
+require("blink.cmp").setup {
+  keymap = { preset = 'default' },
+  completion = { documentation = { auto_show = false } },
+  cmdline = { enabled = false },
+  sources = {
+    default = { 'lazydev', 'lsp', 'snippets', 'path', 'buffer' },
+    providers = {
+      snippets = { score_offset = 0 },
+      lazydev = {
+        name = "LazyDev",
+        module = "lazydev.integrations.blink",
+        score_offset = 100,
+      },
+    },
+  },
+  fuzzy = { implementation = "lua" }
+}
