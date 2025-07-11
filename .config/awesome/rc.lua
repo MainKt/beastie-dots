@@ -8,8 +8,8 @@ beautiful.init({
     useless_gap = beautiful.xresources.apply_dpi(3),
     border_width = beautiful.xresources.apply_dpi(2),
     border_normal = "#2c323a",
-    border_focus = "#5e81ac",
-    scratch_focus = "#e95798",
+    border_focus = "#e95798",
+    scratch_focus = "#5e81ac",
 })
 
 awful.screen.connect_for_each_screen(function(s)
@@ -17,6 +17,17 @@ awful.screen.connect_for_each_screen(function(s)
 end)
 
 local globalkeys = gears.table.join(
+    awful.key({ "Mod4"  }, "y", function()
+        local c = awful.client.iterate(function(c)
+            return not c.focusable and c.first_tag == awful.screen.focused().selected_tag
+        end)()
+
+        c.focusable = true
+        client.focus = c
+        c:raise()
+        c.focusable = false
+    end),
+    --
     awful.key({ "Mod4", "Shift" }, "h", function() awful.tag.incnmaster(1, nil, true) end),
     awful.key({ "Mod4", "Shift" }, "l", function() awful.tag.incnmaster(-1, nil, true) end),
     --
@@ -26,13 +37,14 @@ local globalkeys = gears.table.join(
     awful.key({ "Mod4", "Control" }, "r", awesome.restart),
     awful.key({ "Mod4", "Mod1" }, "q", awesome.quit),
     --
-    awful.key({ "Mod4", "Shift" }, "Return", function() awful.spawn("kitty") end),
+    awful.key({ "Mod4", "Shift" }, "Return", function() awful.spawn("kitty tmux") end),
+    awful.key({ "Mod4", "Mod1" }, "Return", function() awful.spawn("kitty") end),
     awful.key({ "Mod4" }, "Escape", function() awful.spawn("warpd --normal") end),
     awful.key({ "Mod4" }, "q", function() awful.spawn("warpd --normal") end),
     awful.key({ "Mod4" }, ";", function() awful.spawn("warpd --history") end),
     awful.key({ "Mod4" }, "f", function() awful.spawn("warpd --hint") end),
     awful.key({ "Mod4", "Shift" }, "f", function() awful.spawn("warpd --hint2") end),
-    awful.key({ "Mod4" }, "w", function() awful.spawn("brave-browser") end),
+    awful.key({ "Mod4" }, "w", function() awful.spawn("firefox") end),
     awful.key({ "Mod4", "Mod1" }, "Escape", function() awful.spawn("slock") end),
     --
     awful.key({ "Mod4" }, "j", function() awful.client.focus.byidx(1) end),
@@ -55,12 +67,12 @@ local globalkeys = gears.table.join(
     awful.key({ "Shift" }, "Print", function() awful.spawn("scrot -fs pics/screenshots/%d-%m-%Y-%H%M%S.png") end),
     awful.key({ "Mod1" }, "Print", function() awful.spawn("/home/dayf/.local/bin/screenclip") end),
     --
-    awful.key({}, "XF86MonBrightnessDown", function() awful.spawn("xbacklight -5") end),
-    awful.key({}, "XF86MonBrightnessUp", function() awful.spawn("xbacklight +5") end),
+    awful.key({ "Mod4" }, "Left", function() awful.spawn("xbacklight -5") end),
+    awful.key({ "Mod4" }, "Right", function() awful.spawn("xbacklight +5") end),
     --
-    awful.key({}, "XF86AudioLowerVolume", function() awful.spawn("mixer vol=-10%") end),
-    awful.key({}, "XF86AudioRaiseVolume", function() awful.spawn("mixer vol=+10%") end),
-    awful.key({}, "XF86AudioMute", function() awful.spawn("mixer vol.mute=toggle") end),
+    awful.key({ "Mod4" }, "Down", function() awful.spawn("mixer vol=-10%") end),
+    awful.key({ "Mod4" }, "Up", function() awful.spawn("mixer vol=+10%") end),
+    awful.key({ "Mod4", "Mod1" }, "m", function() awful.spawn("mixer vol.mute=toggle") end),
     --
     awful.key({ "Mod4" }, "s", function() awful.spawn(".local/bin/notify-status") end),
     --
@@ -105,27 +117,12 @@ for i = 1, 9 do
             end
         end),
         awful.key({ "Mod4" }, "p", function()
-            local match = function(c)
-                return awful.rules.match(c, { class = "scratchpad" })
-            end
-            local c = awful.client.iterate(match)()
+            local c = awful.client.iterate(function(c)
+                return awful.rules.match(c, { name = "scratchpad" })
+            end)()
 
-            local unhide = function(c) 
-                c.hidden = not c.hidden
-                client.focus = c
-            end
-
-            if not c then
-                awful.spawn("kitty --class scratchpad")
-                gears.timer {
-                    timeout   = 0.001,
-                    autostart = true,
-                    single_shot   = true,
-                    callback = function() unhide(awful.client.iterate(match)()) end
-                }
-            else
-                unhide(c)
-            end
+            c.hidden = not c.hidden
+            client.focus = c
         end)
     )
 end
@@ -146,6 +143,13 @@ local clientkeys = gears.table.join(
     --
     awful.key({ "Mod4" }, "m", function(c)
         c.fullscreen = not c.fullscreen
+        c:raise()
+    end),
+    awful.key({ "Mod4" }, "u", function(c)
+        c.focusable = not c.focusable
+    end),
+    awful.key({ "Mod4", "Control" }, "m", function(c)
+        c.maximized = not c.maximized 
         c:raise()
     end),
     --
@@ -202,8 +206,10 @@ awful.rules.rules = {
         },
     },
 
+    { rule = { name = "sysmon" }, properties = { tag = "9" } },
+
     {
-        rule = { instance = "scratchpad" },
+        rule = { name = "scratchpad" },
         properties = {
             floating = true,
             sticky = true,
@@ -227,13 +233,36 @@ client.connect_signal("manage", function(c)
 end)
 
 client.connect_signal("focus", function(c)
-    c.border_color = c.class == "scratchpad" and
+    c.border_color = c.name == "scratchpad" and
         beautiful.scratch_focus or beautiful.border_focus
 end)
 
 client.connect_signal("unfocus", function(c)
     c.border_color = beautiful.border_normal
-    if c.class == "scratchpad" then c.hidden = true end
+    c.hidden = c.name == "scratchpad"
 end)
 
-awful.spawn.with_shell(".config/awesome/autorun.sh")
+client.connect_signal("kill", function(c)
+    if c.name == "scratchpad" then return end
+end)
+
+for _, cmd in ipairs({
+    "picom",
+    "sxhkd",
+    "dunst",
+    "unclutter",
+    "gromit-mpx",
+    "kitty --title=sysmon btop",
+    "kitty --title=scratchpad sh -c 'IGNOREEOF=9999 exec bash'",
+}) do
+    awful.spawn.with_shell("pgrep -f '" .. cmd:gsub("'", "") .. "' ||" .. cmd)
+end
+
+for _, cmd in ipairs({
+    "wmname LG3D",
+    "feh --bg-scale --randomize ~/pics/wallpapers/",
+    "xinput disable $(xinput list | awk '/TouchPad/ {print$6}' | cut -d= -f2)",
+    "xbacklight -set 35",
+    "xrandr --output eDP --brightness 0.5",
+    "backlight 35",
+}) do awful.spawn.with_shell(cmd) end
