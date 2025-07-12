@@ -1,0 +1,11 @@
+#!/bin/sh
+
+IF_PROGRAM=$1
+KEY_ELSE=$2
+KEY_IF=$3
+
+xdotool getwindowfocus getwindowname | grep -iq "$IF_PROGRAM" && \
+	xdotool key --window "$(xdotool getwindowfocus)" $KEY_IF || \
+	(pkill -USR2 -x sxhkd && \
+	xdotool key --window "$(xdotool getwindowfocus)" --clearmodifiers $KEY_ELSE && \
+	pkill -USR2 -x sxhkd)

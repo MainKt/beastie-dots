@@ -1,0 +1,53 @@
+ctrl + @w
+	~/.config/sxhkd/swapkeys firefox ctrl+w ctrl+BackSpace
+
+alt + @t
+	~/.config/sxhkd/swapkeys firefox alt+t ctrl+t
+
+alt + @p
+	~/.config/sxhkd/swapkeys firefox alt+p ctrl+shift+p
+
+alt + @u
+	~/.config/sxhkd/swapkeys firefox alt+u ctrl+shift+t
+
+alt + @q
+	~/.config/sxhkd/swapkeys firefox alt+q ctrl+w
+
+alt + @j
+	~/.config/sxhkd/swapkeys firefox alt+j ctrl+Tab
+
+alt + @k
+	~/.config/sxhkd/swapkeys firefox alt+k ctrl+shift+Tab
+
+alt + @x
+	~/.config/sxhkd/swapkeys firefox alt+k ctrl+alt+x
+
+alt + shift + @j
+	~/.config/sxhkd/swapkeys firefox alt+shift+j ctrl+shift+Page_Down
+
+alt + shift + @k
+	~/.config/sxhkd/swapkeys firefox alt+shift+k ctrl+shift+Page_Up
+
+alt + @h
+	~/.config/sxhkd/swapkeys firefox alt+h ctrl+bracketleft
+
+alt + @l
+	~/.config/sxhkd/swapkeys firefox alt+l ctrl+bracketright
+
+alt + @r
+	~/.config/sxhkd/swapkeys firefox alt+r ctrl+shift+r
+
+alt + @slash
+	~/.config/sxhkd/swapkeys firefox alt+slash ctrl+f
+
+alt + @d
+	~/.config/sxhkd/swapkeys firefox alt+d ctrl+shift+i
+
+alt + @c
+	~/.config/sxhkd/swapkeys firefox alt+c ctrl+shift+k
+
+alt + @i
+	~/.config/sxhkd/swapkeys firefox alt+i ctrl+shift+c
+
+alt + @s
+	~/.config/sxhkd/swapkeys firefox alt+s alt+ctrl+z
