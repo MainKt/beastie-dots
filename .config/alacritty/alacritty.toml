@@ -1,0 +1,32 @@
+[font]
+normal = { family = "Iosevka Monaco" }
+size = 14
+
+# color scheme
+[colors.primary]
+background = '#000000'
+foreground = '#ffffff'
+
+[colors.cursor]
+text = '#161616' 
+cursor = '#78a9ff'
+
+[colors.normal]
+black   = '#161616'
+red     = '#ee5396'
+green   = '#42be65'
+yellow  = '#ff7eb6'
+blue    = '#33b1ff'
+magenta = '#be95ff'
+cyan    = '#3ddbd9'   
+white   = '#ffffff'  
+
+[colors.bright]
+black   = '#525252'
+red     = '#ee5396'
+green   = '#42be65'
+yellow  = '#ff7eb6'
+blue    = '#33b1ff'
+magenta = '#be95ff'
+cyan    = '#3ddbd9'   
+white   = '#ffffff'
