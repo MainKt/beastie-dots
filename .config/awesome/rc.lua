@@ -2,6 +2,10 @@ local awful = require("awful")
 local beautiful = require("beautiful")
 local gears = require("gears")
 
+local awesome = awesome
+local client = client
+local root = root
+
 require("awful.autofocus")
 
 beautiful.init({
@@ -13,19 +17,17 @@ beautiful.init({
 })
 
 awful.screen.connect_for_each_screen(function(s)
-    awful.tag({ "1", "2", "3", "4", "5", "6", "7", "8", "9" }, s, awful.layout.suit.tile)
+    awful.tag({ "1", "2", "3", "4", "5", "6", "7", "8", "9", "scratchpad" }, s, awful.layout.suit.tile)
 end)
 
-local globalkeys = gears.table.join(
-    awful.key({ "Mod4"  }, "y", function()
-        local c = awful.client.iterate(function(c)
-            return not c.focusable and c.first_tag == awful.screen.focused().selected_tag
-        end)()
+local term_cmd = "kitty"
+local term_tmux_cmd = "kitty tmux"
+local btop_cmd = "kitty --title=sysmon btop"
+local scratchpad_cmd = "kitty --title=scratchpad sh -c 'SCRATCHPAD=y exec bash'"
 
-        c.focusable = true
-        client.focus = c
-        c:raise()
-        c.focusable = false
+local globalkeys = gears.table.join(
+    awful.key({ "Mod4" }, "0", function()
+        awful.tag.viewmore(awful.screen.focused().tags, awful.screen.focused())
     end),
     --
     awful.key({ "Mod4", "Shift" }, "h", function() awful.tag.incnmaster(1, nil, true) end),
@@ -37,8 +39,8 @@ local globalkeys = gears.table.join(
     awful.key({ "Mod4", "Control" }, "r", awesome.restart),
     awful.key({ "Mod4", "Mod1" }, "q", awesome.quit),
     --
-    awful.key({ "Mod4", "Shift" }, "Return", function() awful.spawn("kitty tmux") end),
-    awful.key({ "Mod4", "Mod1" }, "Return", function() awful.spawn("kitty") end),
+    awful.key({ "Mod4", "Shift" }, "Return", function() awful.spawn(term_cmd) end),
+    awful.key({ "Mod4", "Mod1" }, "Return", function() awful.spawn(term_tmux_cmd) end),
     awful.key({ "Mod4" }, "Escape", function() awful.spawn("warpd --normal") end),
     awful.key({ "Mod4" }, "q", function() awful.spawn("warpd --normal") end),
     awful.key({ "Mod4" }, ";", function() awful.spawn("warpd --history") end),
@@ -63,28 +65,28 @@ local globalkeys = gears.table.join(
         if client.focus then client.focus:raise() end
     end),
     --
-    awful.key({}, "Print", function() awful.spawn("scrot pics/screenshots/%d-%m-%Y-%H%M%S.png") end),
-    awful.key({ "Shift" }, "Print", function() awful.spawn("scrot -fs pics/screenshots/%d-%m-%Y-%H%M%S.png") end),
-    awful.key({ "Mod1" }, "Print", function() awful.spawn("/home/dayf/.local/bin/screenclip") end),
+    awful.key({}, "Print", function() awful.spawn(".local/bin/screenclip -f") end),
+    awful.key({ "Mod1" }, "Print", function() awful.spawn(".local/bin/screenclip") end),
     --
-    awful.key({ "Mod4" }, "Left", function() awful.spawn("xbacklight -5") end),
-    awful.key({ "Mod4" }, "Right", function() awful.spawn("xbacklight +5") end),
+    awful.key({ "Mod4" }, "Down", function()
+        awful.spawn("xbacklight -5")
+        awful.spawn("backlight - 5")
+    end),
+    awful.key({ "Mod4" }, "Up", function()
+      awful.spawn("xbacklight +5")
+      awful.spawn("backlight + 5")
+    end),
     --
-    awful.key({ "Mod4" }, "Down", function() awful.spawn("mixer vol=-10%") end),
-    awful.key({ "Mod4" }, "Up", function() awful.spawn("mixer vol=+10%") end),
-    awful.key({ "Mod4", "Mod1" }, "m", function() awful.spawn("mixer vol.mute=toggle") end),
+    awful.key({}, "XF86AudioLowerVolume", function() awful.spawn("mixer vol=-10%") end),
+    awful.key({}, "XF86AudioRaiseVolume", function() awful.spawn("mixer vol=+10%") end),
+    awful.key({}, "XF86AudioMute", function() awful.spawn("mixer vol.mute=toggle") end),
     --
     awful.key({ "Mod4" }, "s", function() awful.spawn(".local/bin/notify-status") end),
     --
     awful.key({ "Mod4" }, "=", function()
         local c = awful.client.restore()
-        if c then
-            c:emit_signal(
-                "request::activate",
-                "key.unminimize",
-                { raise = true }
-            )
-        end
+        if not c then return end
+        c:emit_signal("request::activate", "key.unminimize", { raise = true })
     end)
 )
 
@@ -92,29 +94,25 @@ for i = 1, 9 do
     globalkeys = gears.table.join(
         globalkeys,
         awful.key({ "Mod4" }, "#" .. i + 9, function()
-            local screen = awful.screen.focused()
-            local tag = screen.tags[i]
+            local tag = awful.screen.focused().tags[i]
             if tag then tag:view_only() end
         end),
         --
         awful.key({ "Mod4", "Mod1" }, "#" .. i + 9, function()
-            local screen = awful.screen.focused()
-            local tag = screen.tags[i]
+            local tag = awful.screen.focused().tags[i]
             if tag then awful.tag.viewtoggle(tag) end
         end),
         --
         awful.key({ "Mod4", "Shift" }, "#" .. i + 9, function()
-            if client.focus then
-                local tag = client.focus.screen.tags[i]
-                if tag then client.focus:move_to_tag(tag) end
-            end
+            if not client.focus then return end
+            local tag = client.focus.screen.tags[i]
+            if tag then client.focus:move_to_tag(tag) end
         end),
         --
         awful.key({ "Mod4", "Control" }, "#" .. i + 9, function()
-            if client.focus then
-                local tag = client.focus.screen.tags[i]
-                if tag then client.focus:toggle_tag(tag) end
-            end
+            if not client.focus then return end
+            local tag = client.focus.screen.tags[i]
+            if tag then client.focus:toggle_tag(tag) end
         end),
         awful.key({ "Mod4" }, "p", function()
             local c = awful.client.iterate(function(c)
@@ -130,7 +128,6 @@ end
 root.keys(globalkeys)
 
 local clientkeys = gears.table.join(
-    --
     awful.key({ "Mod4", "Control" }, "h", function(c) c:relative_move(0, 0, -40, 0) end),
     awful.key({ "Mod4", "Control" }, "j", function(c) c:relative_move(0, 0, 0, 40) end),
     awful.key({ "Mod4", "Control" }, "k", function(c) c:relative_move(0, 0, 0, -40) end),
@@ -140,18 +137,6 @@ local clientkeys = gears.table.join(
     awful.key({ "Mod4", "Mod1" }, "j", function(c) c:relative_move(0, 40, 0, 0) end),
     awful.key({ "Mod4", "Mod1" }, "k", function(c) c:relative_move(0, -40, 0, 0) end),
     awful.key({ "Mod4", "Mod1" }, "l", function(c) c:relative_move(40, 0, 0, 0) end),
-    --
-    awful.key({ "Mod4" }, "m", function(c)
-        c.fullscreen = not c.fullscreen
-        c:raise()
-    end),
-    awful.key({ "Mod4" }, "u", function(c)
-        c.focusable = not c.focusable
-    end),
-    awful.key({ "Mod4", "Control" }, "m", function(c)
-        c.maximized = not c.maximized 
-        c:raise()
-    end),
     --
     awful.key({ "Mod4" }, "c", function(c) awful.placement.centered(c) end),
     --
@@ -172,6 +157,19 @@ local clientkeys = gears.table.join(
         awful.tag.viewnext()
         local t = awful.screen.focused().selected_tag
         c:move_to_tag(t)
+    end),
+    --
+    awful.key({ "Mod4", "Control" }, "[", function(c)
+        awful.tag.viewprev()
+        local t = awful.screen.focused().selected_tag
+        c:toggle_tag(t)
+        awful.tag.viewnext()
+    end),
+    awful.key({ "Mod4", "Control" }, "]", function(c)
+        awful.tag.viewnext()
+        local t = awful.screen.focused().selected_tag
+        c:toggle_tag(t)
+        awful.tag.viewprev()
     end),
     --
     awful.key({ "Mod4" }, "-", function(c) c.minimized = true end)
@@ -206,17 +204,20 @@ awful.rules.rules = {
         },
     },
 
-    { rule = { name = "sysmon" }, properties = { tag = "9" } },
+    { rule = { name = "sysmon" },  properties = { tag = "9" } },
+
+    { rule = { class = "firefox" }, properties = { tag = "8" } },
 
     {
-        rule = { name = "scratchpad" },
+        rule = { name  = "scratchpad" },
         properties = {
+            tag = "scratchpad",
             floating = true,
             sticky = true,
             hidden = true,
             ontop = true,
-            width = 1000,
-            height = 600,
+            width = beautiful.xresources.apply_dpi(700),
+            height = beautiful.xresources.apply_dpi(400),
             placement = function(c)
                 awful.placement.centered(c, { honor_workarea = true })
             end,
@@ -242,18 +243,15 @@ client.connect_signal("unfocus", function(c)
     c.hidden = c.name == "scratchpad"
 end)
 
-client.connect_signal("kill", function(c)
-    if c.name == "scratchpad" then return end
-end)
-
 for _, cmd in ipairs({
     "picom",
     "sxhkd",
     "dunst",
     "unclutter",
     "gromit-mpx",
-    "kitty --title=sysmon btop",
-    "kitty --title=scratchpad sh -c 'IGNOREEOF=9999 exec bash'",
+    btop_cmd,
+    scratchpad_cmd,
+    "firefox",
 }) do
     awful.spawn.with_shell("pgrep -f '" .. cmd:gsub("'", "") .. "' ||" .. cmd)
 end
@@ -262,7 +260,9 @@ for _, cmd in ipairs({
     "wmname LG3D",
     "feh --bg-scale --randomize ~/pics/wallpapers/",
     "xinput disable $(xinput list | awk '/TouchPad/ {print$6}' | cut -d= -f2)",
-    "xbacklight -set 35",
-    "xrandr --output eDP --brightness 0.5",
-    "backlight 35",
+    "xbacklight -set 20",
+    "xrandr --output eDP --brightness 0.3",
+    "backlight 20",
+    "setxkbmap -option 'caps:ctrl_modifier'",
+    "xcape -e 'Caps_Lock=Escape'",
 }) do awful.spawn.with_shell(cmd) end
