@@ -1,0 +1,29 @@
+#!/usr/bin/env -S .cargo/bin/cargo +nightly -Zscript
+
+---
+[dependencies]
+regex = "1.11.1"
+---
+
+use regex::Regex;
+use std::io;
+
+fn main() {
+    let ansi_pattern = [
+        "[\\u001B\\u009B][\\[\\]()#;?]*",
+        "(?:(?:(?:(?:;[-a-zA-Z\\d\\/\\#&.:=?%@~_]+)*",
+        "|[a-zA-Z\\d]+(?:;[-a-zA-Z\\d\\/\\#&.:=?%@~_]*)*)?",
+        "(?:\\u0007|\\u001B\\u005C|\\u009C))",
+        "|(?:(?:\\d{1,4}(?:[:;]\\d{0,4})*)?",
+        "[\\dA-PR-TZcf-nq-uy=><~]))",
+    ]
+    .join("");
+
+    let re = Regex::new(ansi_pattern.as_str()).unwrap();
+
+    io::stdin()
+        .lines()
+        .filter_map(|l| l.ok())
+        .map(|l| re.replace_all(l.as_str(), "").into_owned())
+        .for_each(|l| println!("{l}"));
+}
