@@ -1,8 +1,15 @@
 vim.pack.add {
-  "https://github.com/maxmx03/solarized.nvim",
-  "https://github.com/kwkarlwang/bufjump.nvim",
-  "https://github.com/nvim-tree/nvim-web-devicons",
+  -- >>>>>> themes
   "https://github.com/slugbyte/lackluster.nvim",
+  "https://github.com/sainnhe/sonokai",
+  "https://github.com/catppuccin/nvim",
+  "https://github.com/folke/tokyonight.nvim",
+  "https://github.com/nyoom-engineering/oxocarbon.nvim",
+  -- <<<<<< themes
+
+  "https://github.com/tpope/vim-surround",
+  "https://github.com/tpope/vim-repeat",
+  "https://github.com/kwkarlwang/bufjump.nvim",
   "https://github.com/ibhagwan/fzf-lua",
   "https://github.com/stevearc/oil.nvim",
   "https://github.com/NeogitOrg/neogit",
@@ -10,11 +17,10 @@ vim.pack.add {
   "https://github.com/sindrets/diffview.nvim",
   "https://github.com/mbbill/undotree",
   "https://github.com/echasnovski/mini.diff",
-  "https://github.com/echasnovski/mini.icons",
-  "https://github.com/echasnovski/mini.statusline",
   "https://github.com/echasnovski/mini.indentscope",
   "https://github.com/folke/lazydev.nvim",
   "https://github.com/neovim/nvim-lspconfig",
+  "https://github.com/nvim-treesitter/nvim-treesitter-context",
   {
     src = "https://github.com/nvim-treesitter/nvim-treesitter",
     build = ":TSUpdate"
@@ -42,33 +48,30 @@ vim.opt.updatetime = 250
 vim.opt.signcolumn = "yes"
 vim.opt.textwidth = 80
 vim.opt.colorcolumn = "80"
-vim.opt.clipboard = "unnamedplus"
-vim.opt.swapfile = false
+-- vim.opt.swapfile = false
 vim.opt.winborder = "rounded"
+if vim.fn.has("win32") == 1 then
+  vim.opt.shell = "powershell"
+end
 
 vim.lsp.enable({ "clangd", "lua_ls", "zls", "rust_analyzer", "tinymist" })
-
-local dark_theme = "lackluster-hack"
-local light_theme = "solarized"
 
 vim.schedule(function()
   vim.cmd.packadd "cfilter"
 
   vim.cmd("set completeopt+=noselect");
-  vim.o.background = 'dark'
-  vim.cmd.colorscheme(dark_theme)
-end)
+  vim.cmd("TSContext disable")
 
-vim.api.nvim_create_user_command("Capture", function(opts)
-  vim.cmd(
-    "redir => output |" ..
-    "silent " .. opts.args .. "|" ..
-    "redir END |" ..
-    "new |" ..
-    "setlocal buftype=nofile bufhidden=hide noswapfile |" ..
-    "put =output"
-  )
-end, { nargs = "+" })
+  vim.o.background = 'dark'
+  vim.g.sonokai_style = 'espresso'
+  vim.g.sonokai_better_performance = 1
+  vim.cmd.colorscheme("sonokai")
+
+  local groups = { "Normal", "NormalNC", "NormalFloat", "SignColumn", "LineNr", "CursorLineNr" }
+  for _, group in pairs(groups) do
+    vim.api.nvim_set_hl(0, group, { bg = "none" })
+  end
+end)
 
 --
 -- keybindings
@@ -76,7 +79,7 @@ end, { nargs = "+" })
 vim.keymap.set("i", "<C-k>", "<nop>")
 vim.keymap.set("n", "<Esc>", "<cmd>nohlsearch<CR>")
 vim.keymap.set("n", "<leader>%", "<cmd>source %<CR>")
-vim.keymap.set({"n", "v"}, "<leader>x", ":.lua<CR>")
+vim.keymap.set({ "n", "v" }, "<leader>x", ":.lua<CR>")
 vim.keymap.set("n", "<leader>w", "<C-W>")
 vim.keymap.set("n", "co", function()
   vim.cmd(vim.fn.getqflist({ winid = 0 }).winid > 0 and "cclose" or "copen")
@@ -85,26 +88,36 @@ vim.keymap.set("n", "gre", vim.diagnostic.open_float)
 vim.keymap.set({ "n", "v" }, "<leader>=", vim.lsp.buf.format)
 vim.keymap.set("n", "<leader>cq", vim.diagnostic.setqflist)
 vim.keymap.set("n", "<leader>cl", vim.diagnostic.setloclist)
+vim.keymap.set("n", "<leader>cc", "<cmd>TSContext toggle<CR>")
 vim.keymap.set("n", "gd", vim.lsp.buf.definition)
 
 vim.keymap.set("t", "<Esc><Esc>", "<C-\\><C-n>")
 
-vim.keymap.set("n", "<leader>g", "<cmd>Neogit<CR>")
+vim.keymap.set("n", "<leader>g", "<cmd>Neogit kind=auto<CR>")
 
-vim.keymap.set("n", "<leader><leader>", "<cmd>FzfLua files<CR>")
-vim.keymap.set("n", "<leader>*", "<cmd>FzfLua grep_cword<CR>")
-vim.keymap.set("v", "<leader>*", "<cmd>FzfLua grep_visual<CR>")
-vim.keymap.set("n", "<leader>/", "<cmd>FzfLua live_grep<CR>")
-vim.keymap.set("n", [[<leader>']], "<cmd>FzfLua resume<CR>")
-vim.keymap.set("n", "<leader>,", "<cmd>FzfLua buffers<CR>")
-vim.keymap.set("n", "<leader>e", "<cmd>FzfLua  diagnostics_workspace<CR>")
-vim.keymap.set("n", "grs", "<cmd>FzfLua lsp_workspace_symbols<CR>")
+vim.keymap.set("n", "<leader><leader>", "<cmd>FzfLua files<cr>")
+vim.keymap.set("n", "<leader>*", "<cmd>FzfLua grep_cword<cr>")
+vim.keymap.set("v", "<leader>*", "<cmd>FzfLua grep_visual<cr>")
+vim.keymap.set("n", "<leader>/", "<cmd>FzfLua live_grep<cr>")
+vim.keymap.set("n", "grs", "<cmd>FzfLua lsp_workspace_symbols<cr>")
+vim.keymap.set("n", [[<leader>']], "<cmd>FzfLua resume<cr>")
+vim.keymap.set("n", "<leader>,", "<cmd>FzfLua buffers<cr>")
+vim.keymap.set("n", "<leader>e", "<cmd>FzfLua  diagnostics_workspace<cr>")
+vim.keymap.set("n", "<leader>j", "<cmd>FzfLua jumps<cr>")
+vim.keymap.set("n", "<leader>t", "<cmd>FzfLua tabs<cr>")
+
 vim.keymap.set("n", "<leader>bd", "<cmd>bp | bd#<CR>")
+
+vim.keymap.set("n", "gj", function()
+  vim.cmd.tabmove(vim.fn.tabpagenr() == vim.fn.tabpagenr("$") and "0" or "+1")
+end)
+
+vim.keymap.set("n", "gJ", function()
+  vim.cmd.tabmove(vim.fn.tabpagenr() == 1 and "$" or "-1")
+end)
 
 vim.keymap.set("n", "<leader>u", "<cmd>UndotreeToggle<CR>")
 vim.keymap.set("n", "-", ":Oil<Cr>")
-
-vim.keymap.set("n", "<leader>j", "<cmd>FzfLua jumps<cr>")
 
 vim.keymap.set("n", "J", "mzJ`z")
 vim.keymap.set("n", "<C-d>", "<C-d>zz")
@@ -114,16 +127,8 @@ vim.keymap.set("n", "<C-i>", "<C-i>zz")
 vim.keymap.set("n", "n", "nzzzv")
 vim.keymap.set("n", "N", "Nzzzv")
 
-vim.keymap.set("n", "<leader>t", function()
-  if vim.o.background == 'light' then
-    vim.o.background = 'dark'
-    vim.cmd.highlight("clear")
-    vim.cmd.colorscheme(dark_theme)
-  else
-    vim.o.background = 'light'
-    vim.cmd.highlight("clear")
-    vim.cmd.colorscheme(light_theme)
-  end
+vim.keymap.set("n", "<leader>T", function()
+  vim.o.background = vim.o.background == 'light' and 'dark' or 'light'
 end)
 
 --
@@ -159,6 +164,15 @@ require("lazydev").setup {
   },
 }
 
+require("diffview").setup({
+  use_icons = false,
+  view = {
+    default = {
+      layout = "diff2_vertical",
+    },
+  }
+})
+
 require('fzf-lua').setup {}
 
 require("oil").setup {
@@ -166,7 +180,7 @@ require("oil").setup {
   skip_confirm_for_simple_edits = true,
 }
 
-require("nvim-treesitter.configs").setup {
+require("nvim-treesitter.config").setup {
   ensure_installed = { "c", "lua", "vim", "vimdoc", "query", "markdown", "markdown_inline" },
   auto_install = true,
   highlight = {
@@ -180,21 +194,9 @@ require("nvim-treesitter.configs").setup {
   },
 }
 
-require("mini.icons").setup {}
-require("mini.statusline").setup {}
 require("mini.diff").setup {}
 require("mini.indentscope").setup {
   draw = { predicate = function(_) return false end },
-}
-
-local lackluster = require("lackluster")
-lackluster.setup {
-  tweak_background = {
-    normal = lackluster.color.black,
-  },
-  tweak_highlight = {
-    Visual = { bg = "#522d2d", fg = "none" },
-  }
 }
 
 require("bufjump").setup({
@@ -202,3 +204,16 @@ require("bufjump").setup({
   backward_key = "<C-p>",
   on_success = nil
 })
+
+local lackluster = require("lackluster")
+lackluster.setup {
+	tweak_syntax = {
+		comment = "#8c6968",
+	},
+  tweak_background = {
+    normal = lackluster.color.black,
+  },
+  tweak_highlight = {
+    Visual = { bg = "#522d2d", fg = "none" },
+  }
+}
